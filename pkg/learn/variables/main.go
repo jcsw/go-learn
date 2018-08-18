@@ -97,9 +97,12 @@ func slices() {
 	numbers = make([]int, 5)
 	fmt.Println(numbers, len(numbers), cap(numbers))
 
-	cities := []string{"São Paulo"}
+	cities := []string{"São Paulo", "Rio Claro", "Tokyo", "New York", "Singapura"}
 	fmt.Println(cities, len(cities), cap(cities))
 
-	cities = append(cities, "Rio Claro")
+	cities = append(cities, "Londres")
 	fmt.Println(cities, len(cities), cap(cities))
+
+	citiesBrazil := cities[0:2]
+	fmt.Println(citiesBrazil, len(citiesBrazil), cap(citiesBrazil))
 }
