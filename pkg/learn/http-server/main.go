@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"fmt"
+	"html/template"
 	"log"
 	"net/http"
 	"os"
@@ -33,6 +34,7 @@ func main() {
 	router := http.NewServeMux()
 	router.Handle("/", index())
 	router.Handle("/health", health())
+	router.Handle("/hello", hello())
 
 	nextRequestID := func() string {
 		return fmt.Sprintf("%d", time.Now().UnixNano())
@@ -126,4 +128,22 @@ func tracing(nextRequestID func() string) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}
+}
+
+type helloPage struct {
+	Hour string
+}
+
+var pagesModel = template.Must(template.ParseFiles("hello.html"))
+
+func hello() http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		hour := time.Now().Format("15:04:05")
+		page := helloPage{Hour: hour}
+
+		if err := pagesModel.ExecuteTemplate(w, "hello.html", page); err != nil {
+			http.Error(w, "Error on render page.", http.StatusInternalServerError)
+			fmt.Printf("Error on render page.\n%v", err)
+		}
+	})
 }
