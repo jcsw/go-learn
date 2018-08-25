@@ -37,6 +37,7 @@ func main() {
 }
 
 func httpGET(httpClient *http.Client) {
+
 	response, err := httpClient.Get("https://jsonplaceholder.typicode.com/posts")
 	if err != nil {
 		fmt.Printf("Could not read response\n%v\n", err)
@@ -79,5 +80,4 @@ func httpPOST(httpClient *http.Client) {
 	defer response.Body.Close()
 
 	fmt.Printf("Status code returnuded: %v\n", response.StatusCode)
-
 }
