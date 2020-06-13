@@ -6,42 +6,50 @@ import (
 	"time"
 )
 
-var orchestrator sync.WaitGroup
+var workers = 4
+var tasks = make(chan int, workers)
+var wg = sync.WaitGroup{}
+var numbers = 15000
 
 func main() {
 	startTime := time.Now()
 
-	orchestrator.Add(4)
-
-	allPairNumbers := [4001]int{}
-
-	go fillPairNumbers(&allPairNumbers, 0, 1000)
-	go fillPairNumbers(&allPairNumbers, 1001, 2000)
-	go fillPairNumbers(&allPairNumbers, 2001, 3000)
-	go fillPairNumbers(&allPairNumbers, 3001, 4000)
-
-	orchestrator.Wait()
-
-	printPairNumbers(allPairNumbers)
-
-	fmt.Printf("elipsedTime: %v\n", time.Since(startTime))
-}
-
-func fillPairNumbers(pairNumbers *[4001]int, start, end int) {
-	for i := start; i <= end; i++ {
-		time.Sleep(1000)
-		if i%2 == 0 {
-			pairNumbers[i] = i
-		}
+	wg.Add(workers)
+	for worker := 1; worker <= workers; worker++ {
+		go process(worker)
 	}
 
-	orchestrator.Done()
+	for {
+		tasks <- numbers
+		numbers--
+		if numbers == 0 {
+			break
+		}
+	}
+	close(tasks)
+	wg.Wait()
+
+	fmt.Printf("elipsed time: %v\n", time.Since(startTime))
 }
 
-func printPairNumbers(pairNumbers [4001]int) {
-	for _, n := range pairNumbers {
-		if n != 0 {
-			fmt.Printf("[printPairNumbers] number [%d] is pair\n", n)
+func process(worker int) {
+	defer wg.Done()
+	fmt.Printf("init worker:%d\n", worker)
+	count := 0
+	for {
+		task, more := <-tasks
+		if more {
+			processNumber(task)
+			count++
+		} else {
+			fmt.Printf("received all tasks, worker:%d count:%d\n", worker, count)
+			break
 		}
+	}
+}
+
+func processNumber(number int) {
+	if number%2 == 0 {
+		time.Sleep(time.Duration(int64(number)))
 	}
 }
